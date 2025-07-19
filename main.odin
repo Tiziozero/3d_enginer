@@ -72,11 +72,13 @@ Body :: struct {
     torque: f64,
 
     inertia: f64,
-    
+
     // coefficion of restetution
     cor: f64,
     // coefficion of friction
     cof: f64,
+
+    mesh: []Triangle,
 }
 dot :: proc(a, b: Vec3) -> f32 {
     return a.x*b.x + a.y*b.y + a.z*b.z;
@@ -95,10 +97,10 @@ Triangle :: [3]Vec3
 MollerTrumbore :: proc(v1, v2, v0 :Vec3, ray:Ray) -> (bool, f32) {
     e1 := v1 - v0;
     e2 := v2 - v0;
-    
+
     p := cross (ray.direction, e2);
     det := dot(p, e1);
-    epsilon : f32 = 1e-6;
+    epsilon : f32 = 1e-2;
     if (abs(det) <= epsilon) {
         return false, 0;
     }
@@ -212,44 +214,128 @@ main :: proc() {
     };
     c =update_camera(&c);
     logln(c)
-    mesh := []Triangle {
-        {
-            Vec3{-1,-1,3},
-            Vec3{1,-1,3},
-            Vec3{1,1,3},
+    bodies := []Body{
+        Body{
+            mesh= []Triangle{
+                // CUBE 1 - Center cube (your original)
+                // Front face (z = +0.25)
+                {Vec3{-0.25, -0.25, 0.25}, Vec3{0.25, -0.25, 0.25}, Vec3{0.25, 0.25, 0.25}},
+                {Vec3{-0.25, -0.25, 0.25}, Vec3{0.25, 0.25, 0.25}, Vec3{-0.25, 0.25, 0.25}},
+                // Back face (z = -0.25)
+                {Vec3{0.25, -0.25, -0.25}, Vec3{-0.25, -0.25, -0.25}, Vec3{-0.25, 0.25, -0.25}},
+                {Vec3{0.25, -0.25, -0.25}, Vec3{-0.25, 0.25, -0.25}, Vec3{0.25, 0.25, -0.25}},
+                // Left face (x = -0.25)
+                {Vec3{-0.25, -0.25, -0.25}, Vec3{-0.25, -0.25, 0.25}, Vec3{-0.25, 0.25, 0.25}},
+                {Vec3{-0.25, -0.25, -0.25}, Vec3{-0.25, 0.25, 0.25}, Vec3{-0.25, 0.25, -0.25}},
+                // Right face (x = +0.25)
+                {Vec3{0.25, -0.25, 0.25}, Vec3{0.25, -0.25, -0.25}, Vec3{0.25, 0.25, -0.25}},
+                {Vec3{0.25, -0.25, 0.25}, Vec3{0.25, 0.25, -0.25}, Vec3{0.25, 0.25, 0.25}},
+                // Top face (y = +0.25)
+                {Vec3{-0.25, 0.25, 0.25}, Vec3{0.25, 0.25, 0.25}, Vec3{0.25, 0.25, -0.25}},
+                {Vec3{-0.25, 0.25, 0.25}, Vec3{0.25, 0.25, -0.25}, Vec3{-0.25, 0.25, -0.25}},
+                // Bottom face (y = -0.25)
+                {Vec3{-0.25, -0.25, -0.25}, Vec3{0.25, -0.25, -0.25}, Vec3{0.25, -0.25, 0.25}},
+                {Vec3{-0.25, -0.25, -0.25}, Vec3{0.25, -0.25, 0.25}, Vec3{-0.25, -0.25, 0.25}},
+            },
+            color=raylib.RED,
         },
-        {
-            Vec3{-1,-1,3},
-            Vec3{-1,1,3},
-            Vec3{1,1,3},
-        }
+        Body{
+            mesh= []Triangle{
+
+                // CUBE 2 - Left cube (offset by -1.0 in X)
+                // Front face
+                {Vec3{-1.25, -0.25, 0.25}, Vec3{-0.75, -0.25, 0.25}, Vec3{-0.75, 0.25, 0.25}},
+                {Vec3{-1.25, -0.25, 0.25}, Vec3{-0.75, 0.25, 0.25}, Vec3{-1.25, 0.25, 0.25}},
+                // Back face
+                {Vec3{-0.75, -0.25, -0.25}, Vec3{-1.25, -0.25, -0.25}, Vec3{-1.25, 0.25, -0.25}},
+                {Vec3{-0.75, -0.25, -0.25}, Vec3{-1.25, 0.25, -0.25}, Vec3{-0.75, 0.25, -0.25}},
+                // Left face
+                {Vec3{-1.25, -0.25, -0.25}, Vec3{-1.25, -0.25, 0.25}, Vec3{-1.25, 0.25, 0.25}},
+                {Vec3{-1.25, -0.25, -0.25}, Vec3{-1.25, 0.25, 0.25}, Vec3{-1.25, 0.25, -0.25}},
+                // Right face
+                {Vec3{-0.75, -0.25, 0.25}, Vec3{-0.75, -0.25, -0.25}, Vec3{-0.75, 0.25, -0.25}},
+                {Vec3{-0.75, -0.25, 0.25}, Vec3{-0.75, 0.25, -0.25}, Vec3{-0.75, 0.25, 0.25}},
+                // Top face
+                {Vec3{-1.25, 0.25, 0.25}, Vec3{-0.75, 0.25, 0.25}, Vec3{-0.75, 0.25, -0.25}},
+                {Vec3{-1.25, 0.25, 0.25}, Vec3{-0.75, 0.25, -0.25}, Vec3{-1.25, 0.25, -0.25}},
+                // Bottom face
+                {Vec3{-1.25, -0.25, -0.25}, Vec3{-0.75, -0.25, -0.25}, Vec3{-0.75, -0.25, 0.25}},
+                {Vec3{-1.25, -0.25, -0.25}, Vec3{-0.75, -0.25, 0.25}, Vec3{-1.25, -0.25, 0.25}},
+            },color=raylib.BLUE,
+        },
+        Body{
+            mesh= []Triangle{
+
+                // CUBE 3 - Right cube (offset by +1.0 in X)
+                // Front face
+                {Vec3{0.75, -0.25, 0.25}, Vec3{1.25, -0.25, 0.25}, Vec3{1.25, 0.25, 0.25}},
+                {Vec3{0.75, -0.25, 0.25}, Vec3{1.25, 0.25, 0.25}, Vec3{0.75, 0.25, 0.25}},
+                // Back face
+                {Vec3{1.25, -0.25, -0.25}, Vec3{0.75, -0.25, -0.25}, Vec3{0.75, 0.25, -0.25}},
+                {Vec3{1.25, -0.25, -0.25}, Vec3{0.75, 0.25, -0.25}, Vec3{1.25, 0.25, -0.25}},
+                // Left face
+                {Vec3{0.75, -0.25, -0.25}, Vec3{0.75, -0.25, 0.25}, Vec3{0.75, 0.25, 0.25}},
+                {Vec3{0.75, -0.25, -0.25}, Vec3{0.75, 0.25, 0.25}, Vec3{0.75, 0.25, -0.25}},
+                // Right face
+                {Vec3{1.25, -0.25, 0.25}, Vec3{1.25, -0.25, -0.25}, Vec3{1.25, 0.25, -0.25}},
+                {Vec3{1.25, -0.25, 0.25}, Vec3{1.25, 0.25, -0.25}, Vec3{1.25, 0.25, 0.25}},
+                // Top face
+                {Vec3{0.75, 0.25, 0.25}, Vec3{1.25, 0.25, 0.25}, Vec3{1.25, 0.25, -0.25}},
+                {Vec3{0.75, 0.25, 0.25}, Vec3{1.25, 0.25, -0.25}, Vec3{0.75, 0.25, -0.25}},
+                // Bottom face
+                {Vec3{0.75, -0.25, -0.25}, Vec3{1.25, -0.25, -0.25}, Vec3{1.25, -0.25, 0.25}},
+                {Vec3{0.75, -0.25, -0.25}, Vec3{1.25, -0.25, 0.25}, Vec3{0.75, -0.25, 0.25}},
+            },color=raylib.GREEN,
+        },
+        Body{
+            mesh=[]Triangle{
+
+                // CUBE 4 - Top cube (offset by +1.0 in Y)
+                // Front face
+                {Vec3{-0.25, 0.75, 0.25}, Vec3{0.25, 0.75, 0.25}, Vec3{0.25, 1.25, 0.25}},
+                {Vec3{-0.25, 0.75, 0.25}, Vec3{0.25, 1.25, 0.25}, Vec3{-0.25, 1.25, 0.25}},
+                // Back face
+                {Vec3{0.25, 0.75, -0.25}, Vec3{-0.25, 0.75, -0.25}, Vec3{-0.25, 1.25, -0.25}},
+                {Vec3{0.25, 0.75, -0.25}, Vec3{-0.25, 1.25, -0.25}, Vec3{0.25, 1.25, -0.25}},
+                // Left face
+                {Vec3{-0.25, 0.75, -0.25}, Vec3{-0.25, 0.75, 0.25}, Vec3{-0.25, 1.25, 0.25}},
+                {Vec3{-0.25, 0.75, -0.25}, Vec3{-0.25, 1.25, 0.25}, Vec3{-0.25, 1.25, -0.25}},
+                // Right face
+                {Vec3{0.25, 0.75, 0.25}, Vec3{0.25, 0.75, -0.25}, Vec3{0.25, 1.25, -0.25}},
+                {Vec3{0.25, 0.75, 0.25}, Vec3{0.25, 1.25, -0.25}, Vec3{0.25, 1.25, 0.25}},
+                // Top face
+                {Vec3{-0.25, 1.25, 0.25}, Vec3{0.25, 1.25, 0.25}, Vec3{0.25, 1.25, -0.25}},
+                {Vec3{-0.25, 1.25, 0.25}, Vec3{0.25, 1.25, -0.25}, Vec3{-0.25, 1.25, -0.25}},
+                // Bottom face
+                {Vec3{-0.25, 0.75, -0.25}, Vec3{0.25, 0.75, -0.25}, Vec3{0.25, 0.75, 0.25}},
+                {Vec3{-0.25, 0.75, -0.25}, Vec3{0.25, 0.75, 0.25}, Vec3{-0.25, 0.75, 0.25}},
+            },color=raylib.GRAY
+        },
+        Body{
+            mesh=[]Triangle{
+
+                // CUBE 5 - Back cube (offset by -1.0 in Z)
+                // Front face
+                {Vec3{-0.25, -0.25, -0.75}, Vec3{0.25, -0.25, -0.75}, Vec3{0.25, 0.25, -0.75}},
+                {Vec3{-0.25, -0.25, -0.75}, Vec3{0.25, 0.25, -0.75}, Vec3{-0.25, 0.25, -0.75}},
+                // Back face
+                {Vec3{0.25, -0.25, -1.25}, Vec3{-0.25, -0.25, -1.25}, Vec3{-0.25, 0.25, -1.25}},
+                {Vec3{0.25, -0.25, -1.25}, Vec3{-0.25, 0.25, -1.25}, Vec3{0.25, 0.25, -1.25}},
+                // Left face
+                {Vec3{-0.25, -0.25, -1.25}, Vec3{-0.25, -0.25, -0.75}, Vec3{-0.25, 0.25, -0.75}},
+                {Vec3{-0.25, -0.25, -1.25}, Vec3{-0.25, 0.25, -0.75}, Vec3{-0.25, 0.25, -1.25}},
+                // Right face
+                {Vec3{0.25, -0.25, -0.75}, Vec3{0.25, -0.25, -1.25}, Vec3{0.25, 0.25, -1.25}},
+                {Vec3{0.25, -0.25, -0.75}, Vec3{0.25, 0.25, -1.25}, Vec3{0.25, 0.25, -0.75}},
+                // Top face
+                {Vec3{-0.25, 0.25, -0.75}, Vec3{0.25, 0.25, -0.75}, Vec3{0.25, 0.25, -1.25}},
+                {Vec3{-0.25, 0.25, -0.75}, Vec3{0.25, 0.25, -1.25}, Vec3{-0.25, 0.25, -1.25}},
+                // Bottom face
+                {Vec3{-0.25, -0.25, -1.25}, Vec3{0.25, -0.25, -1.25}, Vec3{0.25, -0.25, -0.75}},
+                {Vec3{-0.25, -0.25, -1.25}, Vec3{0.25, -0.25, -0.75}, Vec3{-0.25, -0.25, -0.75}},
+            },color=raylib.YELLOW
+        },
     }
-    mesh = []Triangle{
-        // Front face (z = +1)
-        {Vec3{-0.25, -0.25, 0.25}, Vec3{0.25, -0.25, 0.25}, Vec3{0.25, 0.25, 0.25}},
-        {Vec3{-0.25, -0.25, 0.25}, Vec3{0.25, 0.25, 0.25}, Vec3{-0.25, 0.25, 0.25}},
-
-        // Back face (z = -0.25)
-        {Vec3{0.25, -0.25, -0.25}, Vec3{-0.25, -0.25, -0.25}, Vec3{-0.25, 0.25, -0.25}},
-        {Vec3{0.25, -0.25, -0.25}, Vec3{-0.25, 0.25, -0.25}, Vec3{0.25, 0.25, -0.25}},
-
-        // Left face (x = -0.25)
-        {Vec3{-0.25, -0.25, -0.25}, Vec3{-0.25, -0.25, 0.25}, Vec3{-0.25, 0.25, 0.25}},
-        {Vec3{-0.25, -0.25, -0.25}, Vec3{-0.25, 0.25, 0.25}, Vec3{-0.25, 0.25, -0.25}},
-
-        // Right face (x = +0.25)
-        {Vec3{0.25, -0.25, 0.25}, Vec3{0.25, -0.25, -0.25}, Vec3{0.25, 0.25, -0.25}},
-        {Vec3{0.25, -0.25, 0.25}, Vec3{0.25, 0.25, -0.25}, Vec3{0.25, 0.25, 0.25}},
-
-        // Top face (y = +0.25)
-        {Vec3{-0.25, 0.25, 0.25}, Vec3{0.25, 0.25, 0.25}, Vec3{0.25, 0.25, -0.25}},
-        {Vec3{-0.25, 0.25, 0.25}, Vec3{0.25, 0.25, -0.25}, Vec3{-0.25, 0.25, -0.25}},
-
-        // Bottom face (y = -0.25)
-        {Vec3{-0.25, -0.25, -0.25}, Vec3{0.25, -0.25, -0.25}, Vec3{0.25, -0.25, 0.25}},
-        {Vec3{-0.25, -0.25, -0.25}, Vec3{0.25, -0.25, 0.25}, Vec3{-0.25, -0.25, 0.25}},
-    }
-
     raylib.DisableCursor()
 
     k :f32 = 0
@@ -288,8 +374,12 @@ main :: proc() {
         raylib.BeginDrawing();
         raylib.ClearBackground(raylib.BLACK);
 
-        render_mesh2(&c, mesh);
-        draw_model(c, mesh)
+        for body in bodies {
+            mesh := body.mesh
+            render_mesh2(&c, mesh, body.color);
+            draw_mesh(mesh)
+        }
+        draw_camera(c)
         draw_screen_calcs(c);
         raylib.EndDrawing();
     }
@@ -297,17 +387,19 @@ main :: proc() {
 }
 
 
-draw_model :: proc(c:Camera, mesh: []Triangle) {
-
+draw_camera :: proc(c:Camera) {
     scale :f32= SCALE/2
     x := i32(c.pos.x*scale+200)
     y := i32(c.pos.z*scale+200)
-    
+
     raylib.DrawCircle(x, y, 5, raylib.BLUE);
     dx :i32= x + i32(c.c_forward.x*f32(scale))
     dy :i32= (y + i32(c.c_forward.z*f32(scale)))
     raylib.DrawLine(x,y,dx,dy,raylib.RED);
+}
 
+draw_mesh :: proc(mesh: []Triangle) {
+    scale :f32= SCALE/2
     for t in mesh {
         for v in t {
             x := i32(v.x*scale+200)
@@ -340,23 +432,16 @@ render_mesh :: proc(c:^Camera, mesh: []Triangle) {
         }
     }
 }
-render_mesh2 :: proc(c:^Camera, mesh: []Triangle) {
+render_mesh2 :: proc(c:^Camera, mesh: []Triangle, color: Color) {
     tl := camera_top_left(c)
-    
+
     for i :i32= 0; i < WIDTH; i+= 1 {
         for j :i32= 0; j < HEIGHT; j+=1 {
             // Calculate the target point on the screen plane
             u := f32(i) / f32(WIDTH)   // 0 to 1
             v := f32(j) / f32(HEIGHT)  // 0 to 1
-            
-            // Get the point on the screen plane
             target := tl + c.s_horizontal * u + c.s_vertical * v;
-            a := tl + Vec3{f32(i)/SCALE, f32(j)/SCALE,0};
-            fmt.println(a.x/target.x - 1, a.y/target.y-1, a.z/target.z - 1);
-            
-            // Create ray from camera position towards the target
             direction := normalize3(target - c.pos)
-            
             r := Ray{
                 c.pos,
                 direction,
@@ -370,9 +455,9 @@ render_mesh2 :: proc(c:^Camera, mesh: []Triangle) {
                     hit_something = true
                 }
             }
-            
+
             if hit_something {
-                raylib.DrawPixel(i, j, raylib.GRAY)
+                raylib.DrawPixel(i, j, color)
             }
         }
     }
@@ -385,13 +470,13 @@ draw_screen_calcs  :: proc(c:Camera) {
     x0 :i32= WIDTH / 2
     y0 :i32= HEIGHT / 2
     m := []Vec3{
-    camera_top_left(&cam),
-    camera_top_right(&cam),
-    camera_bottom_left(&cam),
-    camera_bottom_right(&cam),
+        camera_top_left(&cam),
+        camera_top_right(&cam),
+        camera_bottom_left(&cam),
+        camera_bottom_right(&cam),
     }
     for i in m {
-    log(i)
+        log(i)
         raylib.DrawCircle(x0+i32(i.x*SCALE), y0+i32(i.y*SCALE), 2,raylib.WHITE);
     }
     logln()
